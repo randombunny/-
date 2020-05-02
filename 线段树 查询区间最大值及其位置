@@ -1,0 +1,87 @@
+#include<iostream>
+using namespace std;
+
+#define M 100001
+struct node {
+	int l, r, Max,index;
+	node() { index = l = r = Max = 0; }
+}a[4*M];
+
+int N = 0, m = 0;
+int* Data = NULL;
+
+void updata(int k) {
+	if (a[2 * k].Max > a[2 * k + 1].Max) {
+		a[k].Max = a[2 * k].Max;
+		a[k].index = a[2 * k].index;
+	}
+	else {
+		a[k].Max = a[2 * k + 1].Max;
+		a[k].index = a[2 * k + 1].index;
+	}
+}
+
+void Build(int k,int l,int r) {
+	a[k].l = l, a[k].r = r;
+	if (l == r) {
+		a[k].Max = Data[l];
+		a[k].index = l;
+		return;
+	}
+	int mid = (r + l) / 2;
+	Build(2 * k, l, mid);
+	Build(2 * k + 1, mid + 1, r);
+	updata(k);
+}
+
+
+
+void change(int k,int x,int y) {
+	if (a[k].l == a[k].r) {
+		a[k].Max = y;
+		return;
+	}
+	int mid = (a[k].l + a[k].r) / 2;
+	if (x <= mid)change(2 * k, x, y);
+	else change(2 * k + 1, x, y);
+	updata(k);
+}
+
+int Quiry(int k, int l, int r, int& index) {
+	int mid = (a[k].l + a[k].r) / 2;
+	if (a[k].l == l && a[k].r == r) {
+		index = a[k].index;
+		return a[k].Max;
+	}
+	if (r <= mid) {
+		return Quiry(k * 2, l, r, index);
+	}
+	if (l > mid) {
+		return Quiry(k * 2 + 1, l, r, index);
+	}
+	int a, b, c, d;
+	a = Quiry(k * 2, l, mid, c);
+	b = Quiry(k * 2 + 1, mid + 1, r, d);
+	if (a > b) {
+		index = c;
+		return a;
+	}
+	index = d;
+	return b;
+}
+int main() {
+	cin >> N >> m;
+	Data = new int[N];
+	for (int i = 1; i <= N; i++) cin >> Data[i];
+	Build(1, 1, N);
+	int index, key;
+	while (m--) {
+		int cmd, l, r;
+		cin >> cmd >> l >> r;
+		if (cmd) {
+			key = Quiry(1, l, r, index);
+			cout << index << ' ' << key << endl;
+		}
+		else change(1, l, r);
+	}
+}
